@@ -53,3 +53,15 @@ export interface ExposurePath {
   nodeIds: string[]
   edgeIds: string[]
 }
+
+/** Consolidated Phase 3 output: POST /api/analyze — resolves a component
+ * name to its exposure path, exposure level, blast radius, and grounded
+ * mitigation in a single call (replaces impact + exposure-path + mitigation). */
+export interface ComponentAnalysis {
+  component: string
+  nodeIds: string[]
+  edgeIds: string[]
+  exposureLevel: 'isolated' | 'internal' | 'public-facing'
+  brokenDependencies: string[]
+  mitigation: Mitigation
+}

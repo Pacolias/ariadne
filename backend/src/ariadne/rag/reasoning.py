@@ -1,7 +1,7 @@
 import json
 
 from ariadne.graph.client import GraphClient, compute_exposure_level
-from ariadne.rag.llm_providers import LLMProvider
+from ariadne.rag.llm_providers import LLMNotConfiguredError, LLMProvider
 from ariadne.rag.vector_store import VectorStore
 from ariadne.schemas import (
     ComponentAnalysis,
@@ -81,6 +81,7 @@ class ReasoningEngine:
 
         node_ids, edge_ids = self._graph.find_exposure_path(target.id)
         exposure_level = compute_exposure_level(target, node_ids)
+        broken_dependencies = self._graph.find_dependents(target.id)
         mitigation = (
             self.generate_mitigation(target, node_ids, cti)
             if cti is not None
@@ -96,6 +97,7 @@ class ReasoningEngine:
             node_ids=node_ids or [target.id],
             edge_ids=edge_ids,
             exposure_level=exposure_level,
+            broken_dependencies=broken_dependencies,
             mitigation=mitigation,
         )
 
@@ -114,10 +116,16 @@ class ReasoningEngine:
             "now, without taking the service down (a JVM/env flag, config change, or "
             "WAF rule -- not a full upgrade or restart unless strictly necessary)."
         )
-        raw = self._reasoner.generate(prompt, system=MITIGATION_SYSTEM_PROMPT)
         try:
+            raw = self._reasoner.generate(prompt, system=MITIGATION_SYSTEM_PROMPT)
             payload = json.loads(_strip_code_fence(raw))
             return Mitigation(node_id=node.id, summary=str(payload["summary"]), patch=str(payload["patch"]))
+        except LLMNotConfiguredError:
+            return Mitigation(
+                node_id=node.id,
+                summary="Mitigation engine not configured (no ANTHROPIC_API_KEY set).",
+                patch="",
+            )
         except (json.JSONDecodeError, KeyError, TypeError):
             return Mitigation(
                 node_id=node.id,

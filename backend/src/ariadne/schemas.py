@@ -95,6 +95,7 @@ class ComponentAnalysis(CamelModel):
     node_ids: list[str] = []
     edge_ids: list[str] = []
     exposure_level: ExposureLevel
+    broken_dependencies: list[str] = []
     mitigation: Mitigation
 
 

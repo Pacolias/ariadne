@@ -1,13 +1,12 @@
 import { create } from 'zustand'
-import type { CtiSummary, ImpactMetrics, Mitigation, TopologyEdge, TopologyNode } from '../types/graph'
+import type { ComponentAnalysis, CtiSummary, TopologyEdge, TopologyNode } from '../types/graph'
 
 interface AriadneState {
   nodes: TopologyNode[]
   edges: TopologyEdge[]
   cti: CtiSummary | null
   selectedNodeId: string | null
-  impact: ImpactMetrics | null
-  mitigation: Mitigation | null
+  analysis: ComponentAnalysis | null
   commandPaletteOpen: boolean
 
   /** Ariadne's Thread: which nodes/edges to light up right now. Kept
@@ -18,8 +17,7 @@ interface AriadneState {
 
   setTopology: (nodes: TopologyNode[], edges: TopologyEdge[], cti: CtiSummary | null) => void
   selectNode: (nodeId: string | null) => void
-  setImpact: (impact: ImpactMetrics | null) => void
-  setMitigation: (mitigation: Mitigation | null) => void
+  setAnalysis: (analysis: ComponentAnalysis | null) => void
   setHighlight: (nodeIds: string[], edgeIds: string[]) => void
   clearHighlight: () => void
   setCommandPaletteOpen: (open: boolean) => void
@@ -30,19 +28,16 @@ export const useAriadneStore = create<AriadneState>((set) => ({
   edges: [],
   cti: null,
   selectedNodeId: null,
-  impact: null,
-  mitigation: null,
+  analysis: null,
   commandPaletteOpen: false,
   highlightedNodeIds: new Set(),
   highlightedEdgeIds: new Set(),
 
   setTopology: (nodes, edges, cti) => set({ nodes, edges, cti }),
 
-  selectNode: (nodeId) => set({ selectedNodeId: nodeId, impact: null, mitigation: null }),
+  selectNode: (nodeId) => set({ selectedNodeId: nodeId, analysis: null }),
 
-  setImpact: (impact) => set({ impact }),
-
-  setMitigation: (mitigation) => set({ mitigation }),
+  setAnalysis: (analysis) => set({ analysis }),
 
   setHighlight: (nodeIds, edgeIds) =>
     set({ highlightedNodeIds: new Set(nodeIds), highlightedEdgeIds: new Set(edgeIds) }),

@@ -17,6 +17,13 @@ class LLMProvider(Protocol):
     def embed(self, text: str) -> list[float]: ...
 
 
+class LLMNotConfiguredError(RuntimeError):
+    """Raised when a provider is asked to generate/embed without its
+    required configuration (e.g. no API key). Distinct from RuntimeError so
+    callers can catch this specific, expected condition without also
+    swallowing unrelated bugs."""
+
+
 class AnthropicProvider:
     """Used for Phase 3 grounded reasoning — the only place where
     exploitability confidence and remediation text get generated.
@@ -34,7 +41,7 @@ class AnthropicProvider:
     def _get_client(self) -> Anthropic:
         if self._client is None:
             if not settings.anthropic_api_key:
-                raise RuntimeError("ANTHROPIC_API_KEY is not set")
+                raise LLMNotConfiguredError("ANTHROPIC_API_KEY is not set")
             self._client = Anthropic(api_key=settings.anthropic_api_key)
         return self._client
 

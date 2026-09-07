@@ -1,33 +1,38 @@
 import { useEffect, useState } from 'react'
-import { fetchExposurePath, fetchImpact, fetchMitigation } from '../lib/api'
+import { analyzeComponent } from '../lib/api'
 import { useAriadneStore } from '../store/useAriadneStore'
-import type { Mitigation } from '../types/graph'
+import type { ComponentAnalysis, Mitigation } from '../types/graph'
 
-/** Shown when the live LLM mitigation call fails (typically: no
- * ANTHROPIC_API_KEY configured) so the panel never goes blank on a node
- * that's actually compromised. Kept separate from backend logic so it's
- * obvious this is a demo fallback, not a real recommendation source. */
-function offlineFallback(nodeId: string): Mitigation {
+/** Shown when /api/analyze itself is unreachable (network error, backend
+ * down) so the panel never goes blank on a node that's actually
+ * compromised. Kept separate from backend logic so it's obvious this is a
+ * demo fallback, not a real recommendation source. */
+function offlineFallback(nodeId: string): ComponentAnalysis {
   return {
-    nodeId,
-    summary: 'Disable JNDI message lookups at the JVM level — no code change, no restart-heavy rollout.',
-    patch: 'JAVA_OPTS="-Dlog4j2.formatMsgNoLookups=true"',
+    component: nodeId,
+    nodeIds: [nodeId],
+    edgeIds: [],
+    exposureLevel: 'isolated',
+    brokenDependencies: [],
+    mitigation: {
+      nodeId,
+      summary: 'Disable JNDI message lookups at the JVM level — no code change, no restart-heavy rollout.',
+      patch: 'JAVA_OPTS="-Dlog4j2.formatMsgNoLookups=true"',
+    },
   }
 }
 
 /**
- * Reacts to canvas selection instead of holding a chat history:
- * nothing selected -> global CTI facts; a node selected -> its exposure
- * path lit up on the canvas (free, deterministic) plus quantitative impact
- * metrics and the LLM-generated mitigation card (needs ANTHROPIC_API_KEY).
+ * Reacts to canvas selection instead of holding a chat history: nothing
+ * selected -> global CTI facts; a node selected -> one call to
+ * POST /api/analyze resolves its exposure path (lit up on the canvas),
+ * blast radius, and grounded mitigation card together.
  */
 export function ImpactPanel() {
   const cti = useAriadneStore((s) => s.cti)
   const selectedNodeId = useAriadneStore((s) => s.selectedNodeId)
-  const impact = useAriadneStore((s) => s.impact)
-  const mitigation = useAriadneStore((s) => s.mitigation)
-  const setImpact = useAriadneStore((s) => s.setImpact)
-  const setMitigation = useAriadneStore((s) => s.setMitigation)
+  const analysis = useAriadneStore((s) => s.analysis)
+  const setAnalysis = useAriadneStore((s) => s.setAnalysis)
   const setHighlight = useAriadneStore((s) => s.setHighlight)
   const clearHighlight = useAriadneStore((s) => s.clearHighlight)
 
@@ -36,14 +41,17 @@ export function ImpactPanel() {
       clearHighlight()
       return
     }
-    fetchImpact(selectedNodeId).then(setImpact).catch(() => setImpact(null))
-    fetchMitigation(selectedNodeId)
-      .then(setMitigation)
-      .catch(() => setMitigation(offlineFallback(selectedNodeId)))
-    fetchExposurePath(selectedNodeId)
-      .then((path) => setHighlight(path.nodeIds, path.edgeIds))
-      .catch(() => setHighlight([], []))
-  }, [selectedNodeId, setImpact, setMitigation, setHighlight, clearHighlight])
+    analyzeComponent(selectedNodeId)
+      .then((result) => {
+        setAnalysis(result)
+        setHighlight(result.nodeIds, result.edgeIds)
+      })
+      .catch(() => {
+        const fallback = offlineFallback(selectedNodeId)
+        setAnalysis(fallback)
+        setHighlight(fallback.nodeIds, fallback.edgeIds)
+      })
+  }, [selectedNodeId, setAnalysis, setHighlight, clearHighlight])
 
   if (!selectedNodeId) {
     return (
@@ -73,21 +81,19 @@ export function ImpactPanel() {
     <aside className="impact-panel">
       <h2>Node {selectedNodeId}</h2>
 
-      {impact && (
+      {analysis && (
         <section>
           <h3>Blast Radius</h3>
           <dl>
-            <dt>Asset recall</dt>
-            <dd>{(impact.assetRecall * 100).toFixed(0)}%</dd>
             <dt>Exposure</dt>
-            <dd>{impact.exposureLevel}</dd>
+            <dd>{analysis.exposureLevel}</dd>
             <dt>Broken dependencies</dt>
-            <dd>{impact.brokenDependencies.join(', ') || 'none'}</dd>
+            <dd>{analysis.brokenDependencies.join(', ') || 'none'}</dd>
           </dl>
         </section>
       )}
 
-      {mitigation && <MitigationBlock mitigation={mitigation} />}
+      {analysis && <MitigationBlock mitigation={analysis.mitigation} />}
     </aside>
   )
 }
@@ -109,17 +115,23 @@ function MitigationBlock({ mitigation }: { mitigation: Mitigation }) {
 
       <p className="mt-2 text-xs leading-relaxed text-gray-300">{mitigation.summary}</p>
 
-      <pre className="mt-2 overflow-x-auto rounded-md border border-gray-800 bg-black/40 p-2.5">
-        <code className="font-mono text-[12px] leading-relaxed text-emerald-300/90">{mitigation.patch}</code>
-      </pre>
+      {mitigation.patch && (
+        <>
+          <pre className="mt-2 overflow-x-auto rounded-md border border-gray-800 bg-black/40 p-2.5">
+            <code className="font-mono text-[12px] leading-relaxed text-emerald-300/90">
+              {mitigation.patch}
+            </code>
+          </pre>
 
-      <button
-        type="button"
-        onClick={handleCopy}
-        className="mt-2.5 w-full rounded-md border border-gray-800 py-1.5 text-[11px] font-medium uppercase tracking-wide text-gray-400 transition-all duration-150 hover:border-emerald-500/50 hover:text-emerald-400 hover:shadow-[0_0_14px_-3px_rgba(16,185,129,0.6)] active:scale-[0.98]"
-      >
-        {copied ? 'Copied' : 'Copy Rule'}
-      </button>
+          <button
+            type="button"
+            onClick={handleCopy}
+            className="mt-2.5 w-full rounded-md border border-gray-800 py-1.5 text-[11px] font-medium uppercase tracking-wide text-gray-400 transition-all duration-150 hover:border-emerald-500/50 hover:text-emerald-400 hover:shadow-[0_0_14px_-3px_rgba(16,185,129,0.6)] active:scale-[0.98]"
+          >
+            {copied ? 'Copied' : 'Copy Rule'}
+          </button>
+        </>
+      )}
     </section>
   )
 }
