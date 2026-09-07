@@ -1,0 +1,8 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.5",
+  "components": [
+    { "type": "library", "name": "spring-webmvc", "version": "5.3.17" },
+    { "type": "library", "name": "spring-boot-starter-web", "version": "3.3.0" }
+  ]
+}

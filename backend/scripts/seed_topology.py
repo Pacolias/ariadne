@@ -20,11 +20,13 @@ MOCK_TOPOLOGY_DIR = Path(__file__).resolve().parent.parent / "data" / "mock_topo
 def main() -> None:
     nodes, edges = parse_docker_compose(MOCK_TOPOLOGY_DIR / "docker-compose.yml")
 
-    sbom_nodes, sbom_edges = parse_cyclonedx_sbom(
-        MOCK_TOPOLOGY_DIR / "auth-api-sbom.json", service_id="auth-api"
-    )
-    nodes += sbom_nodes
-    edges += sbom_edges
+    for service_id, sbom_file in [
+        ("auth-api", "auth-api-sbom.json"),
+        ("billing-api", "billing-api-sbom.json"),
+    ]:
+        sbom_nodes, sbom_edges = parse_cyclonedx_sbom(MOCK_TOPOLOGY_DIR / sbom_file, service_id=service_id)
+        nodes += sbom_nodes
+        edges += sbom_edges
 
     graph = GraphClient()
     try:

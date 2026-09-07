@@ -28,6 +28,11 @@ services:
 
   auth-db:
     image: mysql:8.4
+    # MISCONFIGURATION (deliberate, for the Phase 4 eval ground truth): the
+    # DB port is accidentally published to the host/internet instead of
+    # staying on the internal compose network.
+    ports:
+      - "3306:3306"
 
   billing-db:
     image: mysql:8.4

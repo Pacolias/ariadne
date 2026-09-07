@@ -44,8 +44,11 @@ Assume we are protecting a modern microservices architecture:
 2. Build an automated test suite that runs the engine against these 10 scenarios.
 3. Calculate and assert strictly on the following metrics:
    - **Asset Recall:** Must be 100% (missing a vulnerable asset is a critical failure).
+   - **Path Accuracy:** The retrieved exposure path must match the ground truth node-for-node, in order -- no partial credit for a reordered or partial path.
    - **Exposure Accuracy:** Must correctly identify isolated vs. exposed services >90%.
    - **Hallucination Rate:** Must be 0% for IP addresses and service names.
+
+   Implemented in `evaluation/metrics.py` (unit-testable pure functions) and exercised end-to-end by `tests/test_rag_pipeline.py` (`pytest -m integration`) against `tests/eval_data.json`.
 
 ## Repository Layout
 This is a two-part repository: `backend/` (this document's primary focus — the Parser+GraphRAG engine) and `frontend/` (the Ariadne-themed visual interface, described below). Treat them as independently deployable services connected by a REST/WebSocket API — the frontend never talks to Neo4j/Qdrant directly.

@@ -11,7 +11,11 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Protocol
 
-from ariadne.evaluation.metrics import asset_recall, exposure_accuracy, hallucination_rate
+from ariadne.evaluation.metrics import (
+    calculate_asset_recall,
+    calculate_exposure_accuracy,
+    calculate_hallucination_rate,
+)
 
 
 @dataclass
@@ -54,11 +58,11 @@ def evaluate(
         expected_assets = set(scenario.expected_assets)
         known_assets = set(scenario.known_assets)
 
-        recalls.append(asset_recall(predicted_assets, expected_assets))
+        recalls.append(calculate_asset_recall(expected_assets, predicted_assets))
         accuracies.append(
-            exposure_accuracy(set(prediction.predicted_exposed), set(scenario.expected_exposed), known_assets)
+            calculate_exposure_accuracy(set(prediction.predicted_exposed), set(scenario.expected_exposed), known_assets)
         )
-        hallucinations.append(hallucination_rate(predicted_assets, known_assets))
+        hallucinations.append(calculate_hallucination_rate(predicted_assets, known_assets))
 
     n = len(scenarios)
     return EvaluationReport(

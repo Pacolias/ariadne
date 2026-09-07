@@ -48,3 +48,6 @@ strict = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+markers = [
+    "integration: requires live Neo4j/Qdrant (see root docker-compose.yml) and, for the mitigation-keyword checks, ANTHROPIC_API_KEY",
+]

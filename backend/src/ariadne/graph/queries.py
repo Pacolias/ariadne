@@ -20,10 +20,20 @@ RETURN n, r, m
 
 # Reachability: is there any path from a node flagged `internet_facing`
 # down to the target? Bounded depth keeps this tractable on dense graphs.
+#
+# `[*0..8]` (not `[*..8]`, which defaults to a minimum of 1 hop) so a target
+# that is itself internet_facing resolves to its own trivial zero-hop path
+# instead of being invisible to this query. `ORDER BY length(path)` matters
+# once more than one node is internet_facing: without it, a multi-hop path
+# through some other entry point can be returned in place of the shorter,
+# more direct (and more dangerous) exposure -- picking the shortest is what
+# makes this deterministic rather than dependent on Neo4j's arbitrary
+# result ordering.
 FIND_EXPOSURE_PATH = """
 MATCH (entry:Asset {internet_facing: true})
-MATCH path = shortestPath((entry)-[*..8]->(target:Asset {id: $target_id}))
+MATCH path = shortestPath((entry)-[*0..8]->(target:Asset {id: $target_id}))
 RETURN path
+ORDER BY length(path) ASC
 LIMIT 1
 """
 
