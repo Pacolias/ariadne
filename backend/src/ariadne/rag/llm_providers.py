@@ -1,12 +1,13 @@
 """Generic LLM interface so the reasoning engine can swap providers per the
 project's "LLM Independence" rule: Ollama for bulk/cheap extraction,
-Anthropic Claude for the zero-hallucination-tolerance reasoning step.
+Gemini for the zero-hallucination-tolerance reasoning step.
 """
 
 from typing import Protocol
 
 import httpx
-from anthropic import Anthropic
+from google import genai
+from google.genai import types
 
 from ariadne.config import settings
 
@@ -24,7 +25,7 @@ class LLMNotConfiguredError(RuntimeError):
     swallowing unrelated bugs."""
 
 
-class AnthropicProvider:
+class GeminiProvider:
     """Used for Phase 3 grounded reasoning — the only place where
     exploitability confidence and remediation text get generated.
 
@@ -36,26 +37,26 @@ class AnthropicProvider:
     """
 
     def __init__(self) -> None:
-        self._client: Anthropic | None = None
+        self._client: genai.Client | None = None
 
-    def _get_client(self) -> Anthropic:
+    def _get_client(self) -> genai.Client:
         if self._client is None:
-            if not settings.anthropic_api_key:
-                raise LLMNotConfiguredError("ANTHROPIC_API_KEY is not set")
-            self._client = Anthropic(api_key=settings.anthropic_api_key)
+            if not settings.gemini_api_key:
+                raise LLMNotConfiguredError("GEMINI_API_KEY is not set")
+            self._client = genai.Client(api_key=settings.gemini_api_key)
         return self._client
 
     def generate(self, prompt: str, *, system: str | None = None) -> str:
-        response = self._get_client().messages.create(
-            model=settings.anthropic_model,
-            max_tokens=1024,
-            system=system or "",
-            messages=[{"role": "user", "content": prompt}],
+        config = types.GenerateContentConfig(system_instruction=system) if system else None
+        response = self._get_client().models.generate_content(
+            model=settings.gemini_model, contents=prompt, config=config
         )
-        return "".join(block.text for block in response.content if block.type == "text")
+        if not response.text:
+            raise RuntimeError("Gemini returned an empty response")
+        return response.text
 
     def embed(self, text: str) -> list[float]:
-        raise NotImplementedError("Anthropic does not serve embeddings; use OllamaProvider.embed")
+        raise NotImplementedError("GeminiProvider does not serve embeddings here; use OllamaProvider.embed")
 
 
 class OllamaProvider:

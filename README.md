@@ -30,7 +30,7 @@ docker compose up -d neo4j qdrant ollama
 cd backend
 python3 -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
-cp .env.example .env   # fill in ANTHROPIC_API_KEY
+cp .env.example .env   # fill in GEMINI_API_KEY
 python scripts/seed_topology.py   # populate the mock topology
 uvicorn ariadne.api.main:app --reload
 

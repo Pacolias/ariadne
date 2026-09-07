@@ -123,7 +123,7 @@ class ReasoningEngine:
         except LLMNotConfiguredError:
             return Mitigation(
                 node_id=node.id,
-                summary="Mitigation engine not configured (no ANTHROPIC_API_KEY set).",
+                summary="Mitigation engine not configured (no GEMINI_API_KEY set).",
                 patch="",
             )
         except (json.JSONDecodeError, KeyError, TypeError):

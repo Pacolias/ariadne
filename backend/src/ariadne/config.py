@@ -13,8 +13,8 @@ class Settings(BaseSettings):
     qdrant_url: str = "http://localhost:6333"
 
     # Reasoning (Phase 3) — grounded synthesis, zero hallucination tolerance.
-    anthropic_api_key: str | None = None
-    anthropic_model: str = "claude-sonnet-5"
+    gemini_api_key: str | None = None
+    gemini_model: str = "gemini-2.5-flash"
 
     # Bulk/cheap extraction (Phase 1) — CTI entity extraction, SBOM/IaC parsing assistance.
     ollama_base_url: str = "http://localhost:11434"

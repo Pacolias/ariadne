@@ -7,7 +7,7 @@ seeded (`python scripts/seed_topology.py`). The three graph-derived metrics
 below never depend on the LLM -- graph traversal is ground truth, per the
 project's coding rules -- so they run and assert unconditionally. Only the
 mitigation-keyword check needs a live LLM call, and is skipped (not failed)
-when no ANTHROPIC_API_KEY is configured or the scenario has no CTI to ground
+when no GEMINI_API_KEY is configured or the scenario has no CTI to ground
 a mitigation in (e.g. a pure infrastructure misconfiguration).
 """
 
@@ -98,7 +98,7 @@ def test_rag_pipeline_topological_accuracy(
 
     mitigation = result["mitigation"]
     if "not configured" in mitigation["summary"].lower():
-        pytest.skip(f"{scenario.id}: ANTHROPIC_API_KEY not set, skipping mitigation keyword check")
+        pytest.skip(f"{scenario.id}: GEMINI_API_KEY not set, skipping mitigation keyword check")
 
     mitigation_text = f"{mitigation['summary']} {mitigation['patch']}".lower()
     for keyword in scenario.expected_mitigation_keywords:

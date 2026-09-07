@@ -28,7 +28,7 @@ mypy src                              # type-check (strict)
 ```
 
 Requires Neo4j and Qdrant reachable (see the root `docker-compose.yml`), and
-`ANTHROPIC_API_KEY` set for the Phase 3 reasoning endpoints (`/api/query`,
+`GEMINI_API_KEY` set for the Phase 3 reasoning endpoints (`/api/query`,
 `/api/graph/nodes/{id}/mitigation`).
 
 ## Phase 4 evaluation (`pytest -m integration`)
@@ -42,7 +42,7 @@ a `pytest_terminal_summary` hook in `tests/conftest.py`.
 
 The three graph-derived metrics are asserted unconditionally (`== 1.0` /
 `== 0.0`) — they never depend on the LLM, since graph traversal is ground
-truth. Only the mitigation-keyword check needs a live `ANTHROPIC_API_KEY`;
+truth. Only the mitigation-keyword check needs a live `GEMINI_API_KEY`;
 it's `pytest.skip`'d, not failed, when the key isn't set or a scenario has
 no CTI to ground a mitigation in (e.g. a pure infrastructure
 misconfiguration). In CI, with the key configured as a secret, that skip
@@ -51,7 +51,7 @@ condition never triggers and the keyword assertions become blocking too.
 ### Latest test results
 
 Run 2026-09-07, local, against the mock topology seeded via
-`scripts/seed_topology.py`, without `ANTHROPIC_API_KEY` set (hence the 3
+`scripts/seed_topology.py`, without `GEMINI_API_KEY` set (hence the 3
 skips — see above):
 
 ```

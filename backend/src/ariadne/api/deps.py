@@ -2,7 +2,7 @@ from functools import lru_cache
 
 from ariadne.config import settings
 from ariadne.graph.client import GraphClient
-from ariadne.rag.llm_providers import AnthropicProvider, OllamaProvider
+from ariadne.rag.llm_providers import GeminiProvider, OllamaProvider
 from ariadne.rag.reasoning import ReasoningEngine
 from ariadne.rag.vector_store import VectorStore
 
@@ -23,8 +23,8 @@ def get_embedder() -> OllamaProvider:
 
 
 @lru_cache
-def get_reasoner() -> AnthropicProvider:
-    return AnthropicProvider()
+def get_reasoner() -> GeminiProvider:
+    return GeminiProvider()
 
 
 @lru_cache

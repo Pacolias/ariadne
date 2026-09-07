@@ -71,7 +71,7 @@ The frontend is themed around the myth of Ariadne's thread through the Labyrinth
 
 ## LLM Strategy (concrete instantiation of "LLM Independence" below)
 - **Ollama (local models):** bulk/cheap extraction work — CTI entity extraction, SBOM/IaC parsing assistance. Zero marginal cost, runs offline.
-- **Anthropic Claude API:** the Phase 3 reasoning step only — synthesizing the retrieved CTI context + exposure subgraph into the final grounded output (`Affected_Assets`, `Exploitability_Confidence`, `Proposed_Mitigation`). This is where hallucination tolerance is zero, so the stronger model is reserved for it.
+- **Google Gemini API:** the Phase 3 reasoning step only — synthesizing the retrieved CTI context + exposure subgraph into the final grounded output (`Affected_Assets`, `Exploitability_Confidence`, `Proposed_Mitigation`). This is where hallucination tolerance is zero, so the stronger model is reserved for it.
 
 ## Data Strategy
 - **CTI reports:** real, publicly available threat intel (Mandiant, CrowdStrike, NVD advisories, etc.) — parsed for genuine, citable extraction quality.
@@ -80,5 +80,5 @@ The frontend is themed around the myth of Ariadne's thread through the Labyrinth
 ## Coding Rules & Constraints
 - **Type Hinting:** Strictly enforce Python type hints (`typing` module) across all functions.
 - **Modularity:** Separate extraction logic from LLM generation logic. The graph traversal must be deterministic code, not delegated to the LLM.
-- **LLM Independence:** Use generic interfaces. The system should easily swap between Anthropic Claude 3.5 Sonnet (for reasoning) and local models (e.g., via Ollama) for basic parsing.
+- **LLM Independence:** Use generic interfaces. The system should easily swap between Google Gemini (for reasoning) and local models (e.g., via Ollama) for basic parsing.
 - **Error Handling:** If the graph cannot resolve an attack path, the system must explicitly return "Insufficient Topology Data", never guess.
