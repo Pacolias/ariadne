@@ -1,7 +1,14 @@
 from neo4j import GraphDatabase
 
 from ariadne.config import settings
-from ariadne.schemas import EdgeKind, ExposureLevel, NodeKind, TopologyEdge, TopologyNode
+from ariadne.schemas import (
+    CtiSummary,
+    EdgeKind,
+    ExposureLevel,
+    NodeKind,
+    TopologyEdge,
+    TopologyNode,
+)
 
 from . import queries
 
@@ -99,3 +106,28 @@ class GraphClient:
     def find_dependents(self, target_id: str) -> list[str]:
         with self._driver.session() as session:
             return [record["id"] for record in session.run(queries.FIND_DEPENDENTS, target_id=target_id)]
+
+    def save_latest_cti(self, cti: CtiSummary) -> None:
+        with self._driver.session() as session:
+            session.run(
+                queries.UPSERT_LATEST_CTI,
+                cve_id=cti.cve_id,
+                target_software=cti.target_software,
+                affected_versions=cti.affected_versions,
+                attack_vector=cti.attack_vector,
+                source_report=cti.source_report,
+            )
+
+    def get_latest_cti(self) -> CtiSummary | None:
+        with self._driver.session() as session:
+            record = session.run(queries.FETCH_LATEST_CTI).single()
+            if record is None:
+                return None
+            c = record["c"]
+            return CtiSummary(
+                cve_id=c["cve_id"],
+                target_software=c["target_software"],
+                affected_versions=c["affected_versions"],
+                attack_vector=c["attack_vector"],
+                source_report=c["source_report"],
+            )

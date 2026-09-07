@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 
-from ariadne.api.deps import LatestCtiStore, get_cti_store, get_graph_client, get_reasoning_engine
+from ariadne.api.deps import get_graph_client, get_reasoning_engine
 from ariadne.graph.client import GraphClient, compute_exposure_level
 from ariadne.rag.reasoning import ReasoningEngine
 from ariadne.schemas import ExposureLevel, ExposurePath, ImpactMetrics, Mitigation, TopologyResponse
@@ -9,12 +9,9 @@ router = APIRouter(prefix="/api/graph", tags=["graph"])
 
 
 @router.get("/topology")
-def get_topology(
-    graph: GraphClient = Depends(get_graph_client),
-    cti_store: LatestCtiStore = Depends(get_cti_store),
-) -> TopologyResponse:
+def get_topology(graph: GraphClient = Depends(get_graph_client)) -> TopologyResponse:
     nodes, edges = graph.get_topology()
-    return TopologyResponse(nodes=nodes, edges=edges, cti=cti_store.get())
+    return TopologyResponse(nodes=nodes, edges=edges, cti=graph.get_latest_cti())
 
 
 @router.get("/nodes/{node_id}/exposure-path")
@@ -46,14 +43,13 @@ def get_impact(node_id: str, graph: GraphClient = Depends(get_graph_client)) -> 
 def get_mitigation(
     node_id: str,
     graph: GraphClient = Depends(get_graph_client),
-    cti_store: LatestCtiStore = Depends(get_cti_store),
     engine: ReasoningEngine = Depends(get_reasoning_engine),
 ) -> Mitigation:
     """Thin wrapper around ReasoningEngine.generate_mitigation, kept as its
     own endpoint for the frontend's per-node parallel fetch (impact +
     exposure-path + mitigation). See POST /api/analyze for the consolidated
     single-call version."""
-    cti = cti_store.get()
+    cti = graph.get_latest_cti()
     if cti is None:
         return Mitigation(
             node_id=node_id,

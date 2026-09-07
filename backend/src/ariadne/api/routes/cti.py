@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 
-from ariadne.api.deps import LatestCtiStore, get_cti_store, get_graph_client
+from ariadne.api.deps import get_graph_client
 from ariadne.graph.client import GraphClient
 from ariadne.parsers.cti_parser import parse_cti_report
 from ariadne.schemas import CtiSummary
@@ -15,13 +15,9 @@ class IngestRequest(BaseModel):
 
 
 @router.post("/ingest")
-def ingest_cti(
-    body: IngestRequest,
-    cti_store: LatestCtiStore = Depends(get_cti_store),
-    graph: GraphClient = Depends(get_graph_client),
-) -> CtiSummary:
+def ingest_cti(body: IngestRequest, graph: GraphClient = Depends(get_graph_client)) -> CtiSummary:
     cti = parse_cti_report(body.text, source_report=body.source_report)
-    cti_store.set(cti)
+    graph.save_latest_cti(cti)
 
     # Best-effort: flag any node whose label matches the reported target
     # software as compromised, so the canvas can render Ariadne's Thread

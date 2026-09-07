@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 
-from ariadne.api.deps import LatestCtiStore, get_cti_store, get_reasoning_engine
+from ariadne.api.deps import get_graph_client, get_reasoning_engine
+from ariadne.graph.client import GraphClient
 from ariadne.rag.reasoning import ReasoningEngine
 from ariadne.schemas import ComponentAnalysis
 
@@ -16,10 +17,10 @@ class AnalyzeRequest(BaseModel):
 def analyze(
     body: AnalyzeRequest,
     engine: ReasoningEngine = Depends(get_reasoning_engine),
-    cti_store: LatestCtiStore = Depends(get_cti_store),
+    graph: GraphClient = Depends(get_graph_client),
 ) -> ComponentAnalysis:
     """Consolidated Phase 3 entry point: given a component name (e.g.
     "log4j-core"), returns its exact exposure path (deterministic, from
     Neo4j) plus the grounded mitigation card -- everything the frontend
     sidebar needs from one call."""
-    return engine.analyze(body.component, cti_store.get())
+    return engine.analyze(body.component, graph.get_latest_cti())

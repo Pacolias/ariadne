@@ -41,3 +41,18 @@ FIND_DEPENDENTS = """
 MATCH (target:Asset {id: $target_id})<-[:DEPENDS_ON*1..4]-(dependent:Asset)
 RETURN DISTINCT dependent.id AS id
 """
+
+# The most recently ingested CTI report, persisted in Neo4j (not process
+# memory) so it survives an API restart -- a redeploy should never make the
+# frontend forget which report is currently active.
+UPSERT_LATEST_CTI = """
+MERGE (c:CtiState {id: "latest"})
+SET c.cve_id = $cve_id, c.target_software = $target_software,
+    c.affected_versions = $affected_versions, c.attack_vector = $attack_vector,
+    c.source_report = $source_report
+"""
+
+FETCH_LATEST_CTI = """
+MATCH (c:CtiState {id: "latest"})
+RETURN c
+"""
