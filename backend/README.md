@@ -47,3 +47,37 @@ it's `pytest.skip`'d, not failed, when the key isn't set or a scenario has
 no CTI to ground a mitigation in (e.g. a pure infrastructure
 misconfiguration). In CI, with the key configured as a secret, that skip
 condition never triggers and the keyword assertions become blocking too.
+
+### Latest test results
+
+Run 2026-09-07, local, against the mock topology seeded via
+`scripts/seed_topology.py`, without `ANTHROPIC_API_KEY` set (hence the 3
+skips — see above):
+
+```
+tests/test_evaluation.py::test_load_ground_truth_parses_scenarios PASSED
+tests/test_evaluation.py::test_evaluate_against_a_perfect_prediction PASSED
+tests/test_metrics.py::test_asset_recall_penalizes_missed_assets PASSED
+tests/test_metrics.py::test_exposure_accuracy_counts_correct_classifications PASSED
+tests/test_metrics.py::test_path_accuracy_requires_exact_order PASSED
+tests/test_metrics.py::test_hallucination_rate_flags_invented_assets PASSED
+tests/test_parsers.py::test_parse_cti_report_extracts_log4shell_fields PASSED
+tests/test_parsers.py::test_parse_docker_compose_flags_published_ports_as_internet_facing PASSED
+tests/test_parsers.py::test_parse_cyclonedx_sbom_links_components_to_owning_service PASSED
+tests/test_rag_pipeline.py::test_rag_pipeline_topological_accuracy[CVE-2021-44228] SKIPPED
+tests/test_rag_pipeline.py::test_rag_pipeline_topological_accuracy[CVE-2022-22965] SKIPPED
+tests/test_rag_pipeline.py::test_rag_pipeline_topological_accuracy[MISCONFIG-AUTH-DB-EXPOSED] SKIPPED
+
+================ Ariadne Phase 4 -- GraphRAG Evaluation Summary ================
+Scenario                      Asset Recall   Path Accuracy   Hallucination
+--------------------------------------------------------------------------
+CVE-2021-44228                        100%            100%              0%
+CVE-2022-22965                        100%            100%              0%
+MISCONFIG-AUTH-DB-EXPOSED             100%            100%              0%
+--------------------------------------------------------------------------
+CI gate: this suite must exit non-zero if any percentage above is not 100/100/0.
+
+9 passed, 3 skipped in 2.26s
+```
+
+`ruff check src tests scripts` and `mypy src` (strict) both pass clean.
