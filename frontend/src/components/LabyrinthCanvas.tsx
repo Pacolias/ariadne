@@ -20,7 +20,9 @@ export function LabyrinthCanvas() {
   const selectedNodeId = useAriadneStore((s) => s.selectedNodeId)
   const highlightedNodeIds = useAriadneStore((s) => s.highlightedNodeIds)
   const highlightedEdgeIds = useAriadneStore((s) => s.highlightedEdgeIds)
-  const selectNode = useAriadneStore((s) => s.selectNode)
+  const ingestPhase = useAriadneStore((s) => s.ingestPhase)
+  const analyzeNode = useAriadneStore((s) => s.analyzeNode)
+  const clearSelection = useAriadneStore((s) => s.clearSelection)
 
   const flowNodes: Node[] = useMemo(() => {
     const positioned = layoutNodes(
@@ -55,14 +57,18 @@ export function LabyrinthCanvas() {
     [edges, highlightedEdgeIds],
   )
 
+  const isBusy = ingestPhase !== 'idle'
+
   return (
-    <div className="labyrinth-canvas">
+    <div
+      className={`labyrinth-canvas ${isBusy ? 'ring-2 ring-inset ring-emerald-500/50 animate-pulse' : ''}`}
+    >
       <ReactFlow
         nodes={flowNodes}
         edges={flowEdges}
         nodeTypes={nodeTypes}
-        onNodeClick={(_, node) => selectNode(node.id)}
-        onPaneClick={() => selectNode(null)}
+        onNodeClick={(_, node) => analyzeNode(node.id)}
+        onPaneClick={() => clearSelection()}
         fitView
         proOptions={{ hideAttribution: true }}
       >

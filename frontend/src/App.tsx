@@ -19,7 +19,9 @@ function App() {
       <LabyrinthCanvas />
       <ImpactPanel />
       <CommandPalette />
-      <div className="command-hint">Ctrl+K to query</div>
+      <div className="pointer-events-none fixed bottom-4 left-4 font-mono text-xs text-gray-600">
+        Ctrl+K to query or ingest a report
+      </div>
     </div>
   )
 }

@@ -27,3 +27,16 @@ export async function runQuery(query: string): Promise<QueryResult> {
   const { data } = await client.post<QueryResult>('/api/query', { query })
   return data
 }
+
+/** Phase 1: parses raw CTI text (a pasted blog post, advisory, PDF dump)
+ * into a structured CVE/software/attack-vector summary, and flags the
+ * matching graph node as compromised. */
+export async function ingestCti(text: string, sourceReport: string): Promise<CtiSummary> {
+  // Note: /api/cti/ingest's request body is plain BaseModel (snake_case),
+  // unlike the CamelModel responses used everywhere else in this API.
+  const { data } = await client.post<CtiSummary>('/api/cti/ingest', {
+    text,
+    source_report: sourceReport,
+  })
+  return data
+}
