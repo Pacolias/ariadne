@@ -14,7 +14,7 @@ class Settings(BaseSettings):
 
     # Reasoning (Phase 3) — grounded synthesis, zero hallucination tolerance.
     gemini_api_key: str | None = None
-    gemini_model: str = "gemini-2.5-flash"
+    gemini_model: str = "gemini-3.6-flash"
 
     # Bulk/cheap extraction (Phase 1) — CTI entity extraction, SBOM/IaC parsing assistance.
     ollama_base_url: str = "http://localhost:11434"

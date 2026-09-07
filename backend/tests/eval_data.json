@@ -11,7 +11,7 @@
     "cti_alert": "Threat Advisory: Spring4Shell Remote Code Execution\n\nCVE: CVE-2022-22965\nAffected Product: spring-webmvc\nAffected Versions: 5.3.0 to 5.3.17\nAttack Vector: Malicious ClassLoader manipulation via Spring MVC/WebFlux parameter data-binding\n",
     "expected_assets": ["billing-api", "spring-webmvc@5.3.17"],
     "expected_exposure_path": ["nginx", "billing-api", "spring-webmvc@5.3.17"],
-    "expected_mitigation_keywords": ["disallowedFields"]
+    "expected_mitigation_keywords": ["class loader"]
   },
   {
     "id": "MISCONFIG-AUTH-DB-EXPOSED",

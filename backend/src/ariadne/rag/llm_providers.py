@@ -7,6 +7,7 @@ from typing import Protocol
 
 import httpx
 from google import genai
+from google.genai import errors as genai_errors
 from google.genai import types
 
 from ariadne.config import settings
@@ -23,6 +24,13 @@ class LLMNotConfiguredError(RuntimeError):
     required configuration (e.g. no API key). Distinct from RuntimeError so
     callers can catch this specific, expected condition without also
     swallowing unrelated bugs."""
+
+
+class LLMUnavailableError(RuntimeError):
+    """Raised when a *configured* provider's call itself fails -- rate
+    limit, transient outage, empty/malformed response. Distinct from
+    LLMNotConfiguredError: "had a key, the call just failed right now" is a
+    different, retryable condition, not a setup problem."""
 
 
 class GeminiProvider:
@@ -48,11 +56,14 @@ class GeminiProvider:
 
     def generate(self, prompt: str, *, system: str | None = None) -> str:
         config = types.GenerateContentConfig(system_instruction=system) if system else None
-        response = self._get_client().models.generate_content(
-            model=settings.gemini_model, contents=prompt, config=config
-        )
+        try:
+            response = self._get_client().models.generate_content(
+                model=settings.gemini_model, contents=prompt, config=config
+            )
+        except genai_errors.APIError as exc:
+            raise LLMUnavailableError(str(exc)) from exc
         if not response.text:
-            raise RuntimeError("Gemini returned an empty response")
+            raise LLMUnavailableError("Gemini returned an empty response")
         return response.text
 
     def embed(self, text: str) -> list[float]:

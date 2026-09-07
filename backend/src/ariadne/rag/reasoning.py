@@ -1,7 +1,7 @@
 import json
 
 from ariadne.graph.client import GraphClient, compute_exposure_level
-from ariadne.rag.llm_providers import LLMNotConfiguredError, LLMProvider
+from ariadne.rag.llm_providers import LLMNotConfiguredError, LLMProvider, LLMUnavailableError
 from ariadne.rag.vector_store import VectorStore
 from ariadne.schemas import (
     ComponentAnalysis,
@@ -124,6 +124,12 @@ class ReasoningEngine:
             return Mitigation(
                 node_id=node.id,
                 summary="Mitigation engine not configured (no GEMINI_API_KEY set).",
+                patch="",
+            )
+        except LLMUnavailableError:
+            return Mitigation(
+                node_id=node.id,
+                summary="Mitigation engine temporarily unavailable (the LLM call failed). Try again shortly.",
                 patch="",
             )
         except (json.JSONDecodeError, KeyError, TypeError):
