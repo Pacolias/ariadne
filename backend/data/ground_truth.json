@@ -1,0 +1,8 @@
+[
+  {
+    "cve_id": "CVE-2021-44228",
+    "expected_assets": ["auth-api", "log4j-core@2.14.1"],
+    "expected_exposed": ["auth-api"],
+    "known_assets": ["auth-api", "log4j-core@2.14.1", "billing-api", "postgres-db"]
+  }
+]

@@ -1,0 +1,33 @@
+# Mock protected environment (per CLAUDE.md's Data Topology) -- this is
+# what the engine reasons about, NOT the infra that runs Ariadne itself
+# (see the root docker-compose.yml for that). Parsed by
+# ariadne.parsers.iac_parser to seed the graph.
+services:
+  nginx:
+    image: nginx:1.27
+    ports:
+      - "443:443"
+    depends_on:
+      - auth-api
+      - billing-api
+
+  auth-api:
+    build: ./mock-services/auth-api # Spring Boot + JWT
+    depends_on:
+      - auth-db
+
+  billing-api:
+    build: ./mock-services/billing-api # Spring Boot
+    depends_on:
+      - billing-db
+
+  frontend:
+    build: ./mock-services/frontend # React + Vite + TS
+    depends_on:
+      - nginx
+
+  auth-db:
+    image: mysql:8.4
+
+  billing-db:
+    image: mysql:8.4

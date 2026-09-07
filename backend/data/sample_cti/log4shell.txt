@@ -1,0 +1,10 @@
+Threat Advisory: Remote Code Execution in Apache Log4j (Log4Shell)
+
+CVE: CVE-2021-44228
+Affected Product: log4j-core
+Affected Versions: 2.0-beta9 to 2.14.1
+Attack Vector: JNDI lookup injection via crafted HTTP header (e.g. User-Agent, X-Forwarded-For)
+
+An attacker can trigger a JNDI lookup by submitting a crafted string that is
+logged by a vulnerable log4j-core instance, resulting in remote class loading
+and code execution in the context of the logging application.

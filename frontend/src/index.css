@@ -1,0 +1,237 @@
+@import 'tailwindcss';
+
+:root {
+  --bg: #0b0c10;
+  --canvas-bg: #0e0f14;
+  --panel-bg: #14151c;
+  --border: #2a2d3a;
+  --text: #c7c9d1;
+  --text-dim: #6b6e7a;
+  --text-h: #f3f4f6;
+  --thread: #d4af37;
+  --danger: #ef4444;
+  --mono: ui-monospace, 'SFMono-Regular', Consolas, monospace;
+  --sans: 'Inter', system-ui, 'Segoe UI', Roboto, sans-serif;
+
+  color-scheme: dark;
+  color: var(--text);
+  background: var(--bg);
+  font: 15px/145% var(--sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body,
+#root {
+  margin: 0;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.app-shell {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  width: 100%;
+  height: 100%;
+}
+
+/* --- Labyrinth Canvas --- */
+
+.labyrinth-canvas {
+  background: var(--canvas-bg);
+  height: 100%;
+}
+
+.react-flow__attribution {
+  display: none;
+}
+
+.service-node {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--kind-accent, var(--border));
+  background: var(--panel-bg);
+  color: var(--text);
+  min-width: 150px;
+  transition: border-color 200ms ease, box-shadow 200ms ease;
+}
+
+.service-node--service {
+  --kind-accent: #5b8def;
+}
+.service-node--library {
+  --kind-accent: #a78bfa;
+}
+.service-node--endpoint {
+  --kind-accent: #2dd4bf;
+}
+.service-node--database {
+  --kind-accent: #f59e0b;
+}
+
+.service-node__kind {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-dim);
+}
+
+.service-node__label {
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+.react-flow__node.selected .service-node {
+  border-color: var(--kind-accent, var(--text-h));
+}
+
+.react-flow__node.is-on-thread .service-node {
+  box-shadow: 0 0 0 1px var(--thread), 0 0 18px rgba(212, 175, 55, 0.6);
+}
+
+.service-node.is-compromised {
+  border-color: var(--danger);
+  box-shadow: 0 0 0 1px var(--danger), 0 0 16px rgba(239, 68, 68, 0.5);
+  animation: pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 1px var(--danger), 0 0 16px rgba(239, 68, 68, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 1px var(--danger), 0 0 28px rgba(239, 68, 68, 0.8);
+  }
+}
+
+.react-flow__edge.edge--thread .react-flow__edge-path {
+  stroke: var(--thread);
+  stroke-width: 2.5;
+  filter: drop-shadow(0 0 6px rgba(212, 175, 55, 0.7));
+}
+
+.react-flow__edge.edge--depends_on .react-flow__edge-path {
+  stroke: #a78bfa;
+  stroke-width: 1.5;
+}
+
+.react-flow__edge.edge--exposes .react-flow__edge-path {
+  stroke: #2dd4bf;
+  stroke-width: 1.5;
+  stroke-dasharray: 4 3;
+}
+
+.react-flow__edge.edge--communicates_with .react-flow__edge-path {
+  stroke: #4b4e5c;
+  stroke-width: 1.5;
+}
+
+/* --- Impact Panel --- */
+
+.impact-panel {
+  background: var(--panel-bg);
+  border-left: 1px solid var(--border);
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.impact-panel h2 {
+  font-size: 15px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-h);
+  margin: 0 0 16px;
+}
+
+.impact-panel h3 {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-dim);
+  margin: 20px 0 8px;
+}
+
+.impact-panel dl {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 12px;
+  margin: 0;
+}
+
+.impact-panel dt {
+  color: var(--text-dim);
+}
+
+.impact-panel dd {
+  margin: 0;
+  color: var(--text-h);
+}
+
+.impact-panel__empty {
+  color: var(--text-dim);
+  font-style: italic;
+}
+
+
+/* --- Command Palette --- */
+
+.command-hint {
+  position: fixed;
+  bottom: 16px;
+  left: 16px;
+  font-size: 12px;
+  color: var(--text-dim);
+  font-family: var(--mono);
+  pointer-events: none;
+}
+
+.command-palette-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 15vh;
+  z-index: 1000;
+}
+
+.command-palette {
+  width: min(560px, 90vw);
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  padding: 8px;
+}
+
+.command-palette input {
+  width: 100%;
+  padding: 12px 14px;
+  font-size: 15px;
+  background: transparent;
+  border: none;
+  color: var(--text-h);
+  outline: none;
+}
+
+.command-palette__status,
+.command-palette__answer {
+  margin: 0;
+  padding: 10px 14px 4px;
+  color: var(--text-dim);
+  border-top: 1px solid var(--border);
+}
+
+.command-palette__answer {
+  color: var(--text);
+}
